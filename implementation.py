@@ -221,16 +221,26 @@ def hash_bits(data: bitarray.bitarray):
 
     for a in blocks:
         schedule = gen_msg_schedule(a)
-        print(schedule)
+        # print(registers, '\n')
         registers = compress(schedule.copy(), constants.copy(), registers.copy())
 
     return reg_to_hash(registers)
 
 
 def test():
-    array = to_bits('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz')
-    print(len(array))
-    print(hash_bits(array))
+    start = 'abc'
+    array = to_bits(start)
+    hash = hash_bits(array)
+    print(len(array), start, '=>', hash)
+    assert hash == 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+    print('WORKED')
+    
+    start = 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'
+    array = to_bits(start)
+    hash = hash_bits(array)
+    print(len(array), start, '=>', hash)
+    assert hash == '941ac378682e3dc66275dd49d5fb09978754ecf4231d18d30326fa51962648ec'
+    print('WORKED')
 
 
 def main():
