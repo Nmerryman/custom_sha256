@@ -228,6 +228,7 @@ def hash_bits(data: bitarray.bitarray):
 
 
 def test():
+    # These hashes are compared with results from https://emn178.github.io/online-tools/sha256.html
     start = 'abc'
     array = to_bits(start)
     hash = hash_bits(array)
