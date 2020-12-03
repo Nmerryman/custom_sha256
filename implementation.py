@@ -9,12 +9,14 @@ primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67
 
 
 def to_bits(data: str):
+    # Helper to convert ascii to bits
     array = bitarray.bitarray()
     array.frombytes(data.encode())
     return array
 
 
 def shr(data: bitarray.bitarray, dist: int):
+    # shift right
     data = data.copy()
     for a in range(dist):
         data.insert(0, 0)
@@ -23,6 +25,7 @@ def shr(data: bitarray.bitarray, dist: int):
 
 
 def rotr(data: bitarray.bitarray, dist: int):
+    # rotate right
     data = data.copy()
     for a in range(dist):
         data.insert(0, data.pop())
@@ -30,6 +33,7 @@ def rotr(data: bitarray.bitarray, dist: int):
 
 
 def xor_vals(*args: int):
+    # xor multiple individual values
     thing = False
     for a in args:
         if int(a) == 1:
@@ -38,6 +42,7 @@ def xor_vals(*args: int):
 
 
 def xor(*args: bitarray.bitarray):
+    # xor arrays
     base = args[0].copy()
     if len(args) > 1:
         for a in args[1:]:
@@ -46,6 +51,7 @@ def xor(*args: bitarray.bitarray):
 
 
 def add(*args: bitarray.bitarray):
+    # Add multiple arrays
     base = int(args[0].to01(), 2)
     if len(args) > 1:
         for a in args[1:]:
@@ -57,26 +63,31 @@ def add(*args: bitarray.bitarray):
 
 
 def sigma_0(data: bitarray.bitarray):
+    # sha operation
     prep = (rotr(data.copy(), 7), rotr(data.copy(), 18), shr(data.copy(), 3))
     return xor(*prep)
 
 
 def sigma_1(data: bitarray.bitarray):
+    # sha operation
     prep = (rotr(data.copy(), 17), rotr(data.copy(), 19), shr(data.copy(), 10))
     return xor(*prep)
 
 
 def SIGMA_0(data: bitarray.bitarray):
+    # sha operation
     prep = (rotr(data.copy(), 2), rotr(data.copy(), 13), rotr(data.copy(), 22))
     return xor(*prep)
 
 
 def SIGMA_1(data: bitarray.bitarray):
+    # sha operation
     prep = (rotr(data.copy(), 6), rotr(data.copy(), 11), rotr(data.copy(), 25))
     return xor(*prep)
 
 
 def choice(x: bitarray.bitarray, y: bitarray.bitarray, z: bitarray.bitarray):
+    # for each in array x, if 1, choose y value from same index, else z value
     base = bitarray.bitarray('0'*len(x))
     for num_a, a in enumerate(x):
         if int(a) == 1:
@@ -87,6 +98,7 @@ def choice(x: bitarray.bitarray, y: bitarray.bitarray, z: bitarray.bitarray):
 
 
 def majority(x: bitarray.bitarray, y: bitarray.bitarray, z: bitarray.bitarray):
+    # majority
     base = bitarray.bitarray('0' * len(x))
     for a in range(len(x)):
         if int(x[a]) + int(y[a]) + int(z[a]) > 1:
@@ -203,11 +215,13 @@ def hash_bits(data: bitarray.bitarray):
     # This starts from the very start with only input bits
     array = pad(data)
     blocks = to_blocks(array)
+    # print(blocks[1])
     constants = gen_constants()
     registers = gen_registers()
 
     for a in blocks:
         schedule = gen_msg_schedule(a)
+        print(schedule)
         registers = compress(schedule.copy(), constants.copy(), registers.copy())
 
     return reg_to_hash(registers)
