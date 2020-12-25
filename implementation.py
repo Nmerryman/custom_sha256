@@ -196,11 +196,11 @@ def update_registers(word: bitarray.bitarray, constant: bitarray.bitarray, regis
 
 def compress(schedule: list, constants: list, registers: list):
     # print(registers)
+    new_reg = registers.copy()
     for a in range(64):
         registers = update_registers(schedule[a], constants[a], registers)
         # print(a, registers)
 
-    new_reg = gen_registers()
     for a in range(8):
         registers[a] = add(new_reg[a], registers[a])
 
@@ -208,7 +208,12 @@ def compress(schedule: list, constants: list, registers: list):
 
 
 def reg_to_hash(registers: list):
-    return "".join([hex(int(a.to01(), 2))[2:] for a in registers])
+    out = ""
+    for a in registers:
+        val = hex(int(a.to01(), 2))[2:]
+        val = "0" * (8 - len(val)) + val  # some registers start with 0 which needs to be added back on
+        out += val
+    return out
 
 
 def hash_bits(data: bitarray.bitarray):
@@ -240,8 +245,14 @@ def test():
     array = to_bits(start)
     hash = hash_bits(array)
     print(len(array), start, '=>', hash)
-    assert hash == '941ac378682e3dc66275dd49d5fb09978754ecf4231d18d30326fa51962648ec'
+    assert str(hash) == '941ac378682e3dc66275dd49d5fb09978754ecf4231d18d30326fa51962648ec'
     print('WORKED')
+
+    start = '''abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'''
+    bits = to_bits(start)
+    hash = hash_bits(bits)
+    assert hash == "064eae61978ddb8c86764defd787420950d2e4b126e8306cdb565e3d082d55dd"
+    print("WORKED")
 
 
 def main():
