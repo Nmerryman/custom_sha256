@@ -8,7 +8,7 @@ sha_name = 256
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311]
 
 
-def to_bits(data: str):
+def str_to_bits(data: str):
     # Helper to convert ascii to bits
     array = bitarray.bitarray()
     array.frombytes(data.encode())
@@ -232,33 +232,67 @@ def hash_bits(data: bitarray.bitarray):
     return reg_to_hash(registers)
 
 
+def hash_str(string: str):
+    # I could make this into one line but this looks nicer to me.
+    bits = str_to_bits(string)
+    hash_val = hash_bits(bits)
+    return hash_val
+
+
+def hash_bytes(data: bytes):
+    bits = bitarray.bitarray()
+    bits.frombytes(data)
+    hash_val = hash_bits(bits)
+    return hash_val
+
+
 def test():
     # These hashes are compared with results from https://emn178.github.io/online-tools/sha256.html
+    # testing various sizes
     start = 'abc'
-    array = to_bits(start)
-    hash = hash_bits(array)
-    print(len(array), start, '=>', hash)
-    assert hash == 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+    array = str_to_bits(start)
+    hash_val = hash_bits(array)
+    print(len(array), start, '=>', hash_val)
+    assert hash_val == 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
     print('WORKED')
     
     start = 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'
-    array = to_bits(start)
-    hash = hash_bits(array)
-    print(len(array), start, '=>', hash)
-    assert str(hash) == '941ac378682e3dc66275dd49d5fb09978754ecf4231d18d30326fa51962648ec'
+    array = str_to_bits(start)
+    hash_val = hash_bits(array)
+    print(len(array), start, '=>', hash_val)
+    assert str(hash_val) == '941ac378682e3dc66275dd49d5fb09978754ecf4231d18d30326fa51962648ec'
     print('WORKED')
 
     start = '''abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'''
-    bits = to_bits(start)
-    hash = hash_bits(bits)
-    assert hash == "064eae61978ddb8c86764defd787420950d2e4b126e8306cdb565e3d082d55dd"
+    bits = str_to_bits(start)
+    hash_val = hash_bits(bits)
+    assert hash_val == "064eae61978ddb8c86764defd787420950d2e4b126e8306cdb565e3d082d55dd"
     print("WORKED")
+
+    # testing from text file
+    with open('test_file.txt', 'r') as f:
+        hash_val = hash_str(f.read())
+    assert hash_val == 'd9d38162f61210a97161fc66fe8fe266566c96547aab3ad2b34bb170dce4a7cb'
+    print("plain text worked")
+
+    # testing reading bytes form file
+    with open('test_file.txt', 'rb') as f:
+        bits = bitarray.bitarray()  # init
+        bits.frombytes(f.read())  # load
+    hash_val = hash_bits(bits)
+    assert hash_val == 'a64c58af41981c80629ddeef8234a5485469787659d59c88ddff68c819100d3d'
+    print("file bytes worked")
+
+    # test for simplified func
+    with open('test_file.txt', 'rb') as f:
+        hash_val = hash_bytes(f.read())
+    assert hash_val == 'a64c58af41981c80629ddeef8234a5485469787659d59c88ddff68c819100d3d'
 
 
 def main():
     test()
     quit()
-    array = to_bits('abc')
+    array = str_to_bits('abc')
     # print(array)
     # test = bitarray.bitarray('11111111000000001111111100000000')
     # test_2 = bitarray.bitarray('11111111000000000000111000011111')
