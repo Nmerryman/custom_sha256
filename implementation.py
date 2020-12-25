@@ -1,5 +1,11 @@
 import bitarray
 import math
+
+"""
+I Wanted to try to impliment SHA256 so I could better understand how the function works.
+Github: https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD Discord: that_dude#1313
+"""
+
 # Programmed with sha256 in mind so some settings may break when trying to change
 # Sha only works with 32bits pieces (words)
 word_size = 32
@@ -292,6 +298,10 @@ def test():
 def main():
     test()
     quit()
+    # ---
+    # This is testing various parts of the algorithm to ensure each part returns expected things.
+    # A lot if this was being compared to https://www.youtube.com/watch?v=f9EbD6iY9zI visually.
+    # ---
     array = str_to_bits('abc')
     # print(array)
     # test = bitarray.bitarray('11111111000000001111111100000000')
@@ -323,3 +333,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+"""
+Github: https://github.com/XDEmer0r-L0rd-360-G0d-SlayerXD Discord: that_dude#1313
+"""
