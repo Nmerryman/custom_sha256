@@ -80,13 +80,35 @@ class Array:
             self.content.append(a)
         return self
 
+    def rotate_right(self, dist: int):
+        todo = self.content
+        self.content = []
+        for a in range(len(todo)):
+            self.content.append(todo[(a - dist) % len(todo)])
+        return self
+
+    def xor(self, other: "Array"):
+        if type(other) != Array or len(self) != len(other):
+            raise ValueError("Cannot Compare properly (not array or differing lengths)")
+        todo = self.content
+        self.content = []
+        for a in range(len(todo)):
+            val = 0 if todo[a].val == other[a].val else 1
+            bit = Bit(val)
+            bit.history = f"<xor>{todo[a].history}{other[a].history}</xor>"
+            self.content.append(bit)
+        return self
+
 
 def main():
     # This is for testing purposes
     # print(bin(18))
     data = Array().from_text('abc')
+    other_data = Array().from_text('bcd')
     print(data.to_str())
-    print(data.shift_right(5).to_str())
+    print(other_data.to_str())
+    data.xor(other_data)
+    print(data[1].history)
 
 
 if __name__ == '__main__':
