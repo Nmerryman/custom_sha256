@@ -87,9 +87,12 @@ class Array:
             self.content.append(todo[(a - dist) % len(todo)])
         return self
 
-    def xor(self, other: "Array"):
+    def _is_valid_comp(self, other: "Array"):
         if type(other) != Array or len(self) != len(other):
             raise ValueError("Cannot Compare properly (not array or differing lengths)")
+
+    def xor_op(self, other: "Array"):
+        self._is_valid_comp(other)
         todo = self.content
         self.content = []
         for a in range(len(todo)):
@@ -99,16 +102,65 @@ class Array:
             self.content.append(bit)
         return self
 
+    def or_op(self, other: "Array"):
+        self._is_valid_comp(other)
+        todo = self.content
+        self.content = []
+        for a in range(len(todo)):
+            val = 1 if todo[a].val == 1 or other[a].val == 1 else 0
+            bit = Bit(val)
+            bit.history = f"<or>{todo[a].history}{other[a].history}</or>"
+        return self
+
+    def and_op(self, other: "Array"):
+        self._is_valid_comp(other)
+        todo = self.content
+        self.content = []
+        for a in range(len(todo)):
+            val = 1 if todo[a].val == 1 and other[a].val == 1 else 0
+            bit = Bit(val)
+            bit.history = f"<and>{todo[a].history}{other[a].history}</and>"
+        return self
+
+    def add_op(self, other: "Array"):
+        self._is_valid_comp(other)
+        todo = list(reversed(self.content))
+        other = list(reversed(other.content))
+        self.content = []
+        carry = 0
+        carry_data = ""
+        for a in range(len(todo)):
+            val = todo[a].val + other[a].val + carry
+            if val >= 2:
+                carry = 1
+                val -= 2
+            else:
+                carry = 0
+            bit = Bit(val)
+            if a == 0:
+                carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
+            else:
+                carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry>{carry_data}</carry></add>"
+            bit.history = carry_data
+            self.content.append(bit)
+        if carry == 1:
+            bit = Bit(1)
+            bit.history = carry_data
+            self.content.append(bit)
+        self.content.reverse()
+        return self
+
 
 def main():
     # This is for testing purposes
     # print(bin(18))
     data = Array().from_text('abc')
     other_data = Array().from_text('bcd')
+    data.content[0] = Bit(1)
     print(data.to_str())
     print(other_data.to_str())
-    data.xor(other_data)
-    print(data[1].history)
+    data.add_op(other_data)
+    print(data[-2].history)
 
 
 if __name__ == '__main__':
