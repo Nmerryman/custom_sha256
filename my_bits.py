@@ -11,6 +11,11 @@ class Bit:
         self.val: int = val
         self.history: str = f"<const>{self.val}</const>"
 
+    def copy(self):
+        new = Bit(self.val)
+        new.history = self.history
+        return new
+
 
 class Array:
     # All conversions assume hex was given for leading zeros
@@ -149,6 +154,45 @@ class Array:
             self.content.append(bit)
         self.content.reverse()
         return self
+
+    def copy(self):
+        new = Array()
+        for a in self.content:
+            new.content.append(a.copy())
+        return new
+
+
+def xor(*args: Array):
+    if len(args) == 1:
+        return args[0]
+    thing = args[0]
+    thing: Array
+    for a in args[-1:]:
+        thing.xor_op(a)
+    return thing
+
+
+def choice(x: Array, y: Array, z: Array):
+    new = Array()
+    for a in range(len(x)):
+        if x[a].val == 1:
+            new.content.append(y[a])
+        else:
+            new.content.append(z[a])
+        new.content[a].history = f"<choice>{x[a].history}{y[a].history}{z[a].history}</choice>"
+    return new
+
+
+def majority(x: Array, y: Array, z: Array):
+    new = Array()
+    for a in range(len(x)):
+        if x[a].val + y[a].val + z[a].val > 1:
+            bit = Bit(1)
+        else:
+            bit = Bit(0)
+        bit.history = f"<majority>{x[a].history}{y[a].history}{z[a].history}</majority>"
+        new.content.append(bit)
+    return new
 
 
 def main():
