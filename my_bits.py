@@ -24,7 +24,7 @@ class Array:
         if not bits:
             self.content = []
         elif type(bits) == str:
-            self.from_str(bits)
+            self.from_str_num(bits)
         elif type(bits) == int:
             self.from_num(bits)
         elif type(bits) == list:
@@ -51,13 +51,15 @@ class Array:
         elif type(val) == str:
             return Bit(int(val))
 
-    def from_str(self, text: str):
+    def from_str_num(self, text: str):
+        # number in string form
         text = text.split("b")[-1].split('x')[-1]
         for a in text:
             self.content.append(self._gen_bit(a))
         return self
 
     def from_num(self, num):
+        # takes any number input
         val = bin(num).split('b')[-1]
         val = '0' * ((4 - len(val) % 4) % 4) + val
         for a in val:
@@ -65,6 +67,8 @@ class Array:
         return self
 
     def from_text(self, text):
+        # takes an ascii string to convert each letter
+        # seems to work well with file bytes as well
         for a in text:
             self.from_num(ord(a))
         return self
@@ -169,6 +173,16 @@ def xor(*args: Array):
     thing: Array
     for a in args[-1:]:
         thing.xor_op(a)
+    return thing
+
+
+def add(*args: Array):
+    if len(args) == 1:
+        return args[0]
+    thing = args[0]
+    thing: Array
+    for a in args[-1:]:
+        thing.and_op(a)
     return thing
 
 
