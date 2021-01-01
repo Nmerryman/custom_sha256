@@ -40,7 +40,10 @@ class Array:
         return (b for b in self.content)
 
     def __getitem__(self, item):
-        return self.content[item]
+        part = self.content[item]
+        new = Array()
+        new.content = part
+        return new
 
     @staticmethod
     def _gen_bit(val):
