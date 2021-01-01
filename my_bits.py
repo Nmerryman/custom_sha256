@@ -40,6 +40,8 @@ class Array:
         return (b for b in self.content)
 
     def __getitem__(self, item):
+        if type(item) == int:
+            return self.content[item]
         part = self.content[item]
         new = Array()
         new.content = part
@@ -102,6 +104,8 @@ class Array:
 
     def _is_valid_comp(self, other: "Array"):
         if type(other) != Array or len(self) != len(other):
+            print('self', self.to_str())
+            print('other', other.to_str())
             raise ValueError("Cannot Compare properly (not array or differing lengths)")
 
     def xor_op(self, other: "Array"):
@@ -126,6 +130,7 @@ class Array:
         return self
 
     def and_op(self, other: "Array"):
+        # fixme self.content never gets reassigned
         self._is_valid_comp(other)
         todo = self.content
         self.content = []
@@ -140,11 +145,13 @@ class Array:
         # does a complete add. will need to mod after func if desired
         self._is_valid_comp(other)
         todo = list(reversed(self.content))
+        # print('todo', todo)
         other = list(reversed(other.content))
         self.content = []
         carry = 0
         carry_data = ""
         for a in range(len(todo)):
+            # print("digit")
             val = todo[a].val + other[a].val + carry
             if val >= 2:
                 carry = 1
@@ -172,7 +179,7 @@ class Array:
         return new
 
 
-def xor(*args: Array):
+def xor_multi(*args: Array):
     if len(args) == 1:
         return args[0]
     thing = args[0]
@@ -188,8 +195,8 @@ def add(*args: Array):
         return args[0]
     thing = args[0]
     thing: Array
-    for a in args[-1:]:
-        thing.and_op(a)
+    for a in args[1:]:
+        thing.add_op(a)
     return thing
 
 
