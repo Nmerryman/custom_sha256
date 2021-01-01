@@ -7,25 +7,25 @@ primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67
 def sigma_0(data: Array):
     # sha operation
     prep = (data.copy().rotate_right(7), data.copy().rotate_right(13), data.copy().shift_right(3))
-    return xor(*prep)
+    return xor_multi(*prep)
 
 
 def sigma_1(data: Array):
     # sha operation
-    prep = (data.copy().rotate_right(17, data.copy().rotate_right(19), data.copy().shift_right(10)))
-    return xor(*prep)
+    prep = (data.copy().rotate_right(17), data.copy().rotate_right(19), data.copy().shift_right(10))
+    return xor_multi(*prep)
 
 
 def SIGMA_0(data: Array):
     # sha operation
     prep = (data.copy().rotate_right(2), data.copy().rotate_right(13), data.copy().rotate_right(22))
-    return xor(*prep)
+    return xor_multi(*prep)
 
 
 def SIGMA_1(data: Array):
     # sha operation
     prep = (data.copy().rotate_right(6), data.copy().rotate_right(11), data.copy().rotate_right(25))
-    return xor(*prep)
+    return xor_multi(*prep)
 
 
 def gen_square(root: int):
@@ -67,8 +67,10 @@ def pad(message: Array):
 def to_blocks(message: Array):
     # must a working size
     blocks = len(message) / 512
+    print('blocks', blocks)
     pieces = []
     for a in range(int(blocks)):
+        print('cut')
         pieces.append(message[a * 512: (a + 1) * 512])
     return pieces
 
@@ -119,6 +121,7 @@ def compress(schedule: list, constants: list, registers: list):
     # print(registers)
     new_reg = registers.copy()
     for a in range(64):
+        input('update reg')
         registers = update_registers(schedule[a], constants[a], registers)
         # print(a, registers)
 
@@ -140,9 +143,9 @@ def reg_to_hash(registers: list):
 def hash_bits(data: Array):
     # This starts from the very start with only input bits
     array = pad(data)
-    print(array.to_str())
+    # print(array.to_str())
     blocks = to_blocks(array)
-    # print(blocks[1])
+    print(blocks)
     constants = gen_constants()
     registers = gen_registers()
 
@@ -171,10 +174,9 @@ def hash_bytes(data: bytes):
 
 
 def main():
-    print(gen_cube(7))
-    print(gen_square(7))
+    # print(gen_cube(7))
+    # print(gen_square(7))
     print(hash_str("abc"))
-
 
 
 if __name__ == '__main__':
