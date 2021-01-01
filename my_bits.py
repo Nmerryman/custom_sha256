@@ -5,11 +5,17 @@ This was made specifically for working with the sha256 hash to better understand
 """
 
 
+USE_HISTORY = True
+
+
 class Bit:
 
     def __init__(self, val: int):
         self.val: int = val
-        self.history: str = f"<const>{self.val}</const>"
+        if USE_HISTORY:
+            self.history: str = f"<const>{self.val}</const>"
+        else:
+            self.history = ""
 
     def copy(self):
         new = Bit(self.val)
@@ -115,7 +121,8 @@ class Array:
         for a in range(len(todo)):
             val = 0 if todo[a].val == other[a].val else 1
             bit = Bit(val)
-            bit.history = f"<xor>{todo[a].history}{other[a].history}</xor>"
+            if USE_HISTORY:
+                bit.history = f"<xor>{todo[a].history}{other[a].history}</xor>"
             self.content.append(bit)
         return self
 
@@ -126,7 +133,8 @@ class Array:
         for a in range(len(todo)):
             val = 1 if todo[a].val == 1 or other[a].val == 1 else 0
             bit = Bit(val)
-            bit.history = f"<or>{todo[a].history}{other[a].history}</or>"
+            if USE_HISTORY:
+                bit.history = f"<or>{todo[a].history}{other[a].history}</or>"
         return self
 
     def and_op(self, other: "Array"):
@@ -137,7 +145,8 @@ class Array:
         for a in range(len(todo)):
             val = 1 if todo[a].val == 1 and other[a].val == 1 else 0
             bit = Bit(val)
-            bit.history = f"<and>{todo[a].history}{other[a].history}</and>"
+            if USE_HISTORY:
+                bit.history = f"<and>{todo[a].history}{other[a].history}</and>"
         return self
 
     def add_op(self, other: "Array"):
@@ -163,11 +172,13 @@ class Array:
                 carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
             else:
                 carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry>{carry_data}</carry></add>"
-            bit.history = carry_data
+            if USE_HISTORY:
+                bit.history = carry_data
             self.content.append(bit)
         if carry == 1:
             bit = Bit(1)
-            bit.history = f"<add><main><const>0</const><const>0</const></main><carry>{carry_data}</carry></add>"
+            if USE_HISTORY:
+                bit.history = f"<add><main><const>0</const><const>0</const></main><carry>{carry_data}</carry></add>"
             self.content.append(bit)
         self.content.reverse()
         return self
@@ -207,7 +218,8 @@ def choice(x: Array, y: Array, z: Array):
             new.content.append(y[a])
         else:
             new.content.append(z[a])
-        new.content[a].history = f"<choice>{x[a].history}{y[a].history}{z[a].history}</choice>"
+        if USE_HISTORY:
+            new.content[a].history = f"<choice>{x[a].history}{y[a].history}{z[a].history}</choice>"
     return new
 
 
@@ -218,7 +230,8 @@ def majority(x: Array, y: Array, z: Array):
             bit = Bit(1)
         else:
             bit = Bit(0)
-        bit.history = f"<majority>{x[a].history}{y[a].history}{z[a].history}</majority>"
+        if USE_HISTORY:
+            bit.history = f"<majority>{x[a].history}{y[a].history}{z[a].history}</majority>"
         new.content.append(bit)
     return new
 
