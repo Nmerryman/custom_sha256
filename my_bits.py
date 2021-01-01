@@ -60,6 +60,7 @@ class Array:
 
     def from_num(self, num):
         # takes any number input
+        # ensures everything is byte size via being multiple of 4 long
         val = bin(num).split('b')[-1]
         val = '0' * ((4 - len(val) % 4) % 4) + val
         for a in val:
@@ -74,6 +75,7 @@ class Array:
         return self
 
     def to_str(self):
+        # For converting data to string, good for printing
         vals = ''
         for a in self.content:
             a: Bit
@@ -84,9 +86,8 @@ class Array:
         todo = self.content
         self.content = []
         important = todo[:-dist]
-        self.from_str("0" * dist)
-        for a in important:
-            self.content.append(a)
+        self.from_str_num("0" * dist)
+        self.content.extend(important)
         return self
 
     def rotate_right(self, dist: int):
@@ -132,6 +133,8 @@ class Array:
         return self
 
     def add_op(self, other: "Array"):
+        # This assumes big endian iirc
+        # does a complete add. will need to mod after func if desired
         self._is_valid_comp(other)
         todo = list(reversed(self.content))
         other = list(reversed(other.content))
@@ -154,7 +157,7 @@ class Array:
             self.content.append(bit)
         if carry == 1:
             bit = Bit(1)
-            bit.history = carry_data
+            bit.history = f"<add><main><const>0</const><const>0</const></main><carry>{carry_data}</carry></add>"
             self.content.append(bit)
         self.content.reverse()
         return self
@@ -177,6 +180,7 @@ def xor(*args: Array):
 
 
 def add(*args: Array):
+    # todo make sure this is right, there may be issues with anding them one at a time
     if len(args) == 1:
         return args[0]
     thing = args[0]
