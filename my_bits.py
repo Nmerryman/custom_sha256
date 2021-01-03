@@ -110,8 +110,8 @@ class Array:
 
     def _is_valid_comp(self, other: "Array"):
         if type(other) != Array or len(self) != len(other):
-            print('self', self.to_str())
-            print('other', other.to_str())
+            print('self', self.to_str(), len(self.to_str()))
+            print('other', other.to_str(), len(other.to_str()))
             raise ValueError("Cannot Compare properly (not array or differing lengths)")
 
     def xor_op(self, other: "Array"):
@@ -149,6 +149,7 @@ class Array:
                 bit.history = f"<and>{todo[a].history}{other[a].history}</and>"
         return self
 
+    # @profile
     def add_op(self, other: "Array"):
         # This assumes big endian iirc
         # does a complete add. will need to mod after func if desired
@@ -168,11 +169,13 @@ class Array:
             else:
                 carry = 0
             bit = Bit(val)
-            if a == 0:
-                carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
-            else:
-                carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry>{carry_data}</carry></add>"
             if USE_HISTORY:
+                print(USE_HISTORY)
+                if a == 0:
+                    carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
+                else:
+                    carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry>{carry_data}</carry></add>"
+                    # carry_data = ""
                 bit.history = carry_data
             self.content.append(bit)
         if carry == 1:
@@ -200,14 +203,17 @@ def xor_multi(*args: Array):
     return thing
 
 
-def add(*args: Array):
-    # todo make sure this is right, there may be issues with anding them one at a time
+def add_mod(*args: Array):
+    # todo make sure this is right, there may be issues with adding them one at a time
     if len(args) == 1:
         return args[0]
     thing = args[0]
     thing: Array
+    max_len = len(thing)
     for a in args[1:]:
         thing.add_op(a)
+        if len(thing) > max_len:
+            thing = thing[-max_len:]
     return thing
 
 
