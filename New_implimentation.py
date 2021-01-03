@@ -1,31 +1,32 @@
-from my_bits import *
+import my_bits as mb
 import math
+import gc
 
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311]
 
 
-def sigma_0(data: Array):
+def sigma_0(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(7), data.copy().rotate_right(13), data.copy().shift_right(3))
-    return xor_multi(*prep)
+    return mb.xor_multi(*prep)
 
 
-def sigma_1(data: Array):
+def sigma_1(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(17), data.copy().rotate_right(19), data.copy().shift_right(10))
-    return xor_multi(*prep)
+    return mb.xor_multi(*prep)
 
 
-def SIGMA_0(data: Array):
+def SIGMA_0(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(2), data.copy().rotate_right(13), data.copy().rotate_right(22))
-    return xor_multi(*prep)
+    return mb.xor_multi(*prep)
 
 
-def SIGMA_1(data: Array):
+def SIGMA_1(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(6), data.copy().rotate_right(11), data.copy().rotate_right(25))
-    return xor_multi(*prep)
+    return mb.xor_multi(*prep)
 
 
 def gen_square(root: int):
@@ -48,23 +49,23 @@ def gen_cube(root: int):
     return out
 
 
-def pad(message: Array):
+def pad(message: mb.Array):
     # This assumes all fits into only 1 message of 512
     # todo label the important bits here
     base = message.copy()
     ks = 448 - 1 - len(message)
     while ks < 0:
         ks += 512
-    base.content.append(Bit(1))
+    base.content.append(mb.Bit(1))
     for _ in range(ks):
-        base.content.append(Bit(0))
+        base.content.append(mb.Bit(0))
     extra = "{0:b}".format(len(message))
     extra = "0" * (64 - len(extra)) + extra
-    base.content.extend(Array(extra).content)
+    base.content.extend(mb.Array(extra).content)
     return base
 
 
-def to_blocks(message: Array):
+def to_blocks(message: mb.Array):
     # must a working size
     blocks = len(message) / 512
     print('blocks', blocks)
@@ -75,14 +76,18 @@ def to_blocks(message: Array):
     return pieces
 
 
-def gen_msg_schedule(message: Array):
+# @profile
+def gen_msg_schedule(message: mb.Array):
     schedule = []
     for a in range(int(len(message) / 32)):
         schedule.append(message[a * 32: (a + 1) * 32])
     for a in range(64 - len(schedule)):
+        gc.collect()
         input(f'gen msg {a}')
+        # if a > 3:
+        #     quit()
         temp1, temp2, temp3, temp4 = schedule[a], sigma_0(schedule[a + 1]), schedule[a + 9], sigma_1(schedule[a + 14])
-        together = add(temp1, temp2, temp3, temp4)
+        together = mb.add(temp1, temp2, temp3, temp4)[-32:]
         schedule.append(together)
     return schedule
 
@@ -103,17 +108,17 @@ def gen_registers():
     return reg
 
 
-def update_registers(word: Array, constant: Array, registers: list):
+def update_registers(word: mb.Array, constant: mb.Array, registers: list):
     # print(word, constant, registers)
-    T1 = add(word, constant, SIGMA_1(registers[4]), choice(*registers[4: 7]), registers[7])[-32:]
-    T2 = add(majority(*registers[0:3]), SIGMA_0(registers[0]))[-32:]
+    T1 = mb.add(word, constant, SIGMA_1(registers[4]), mb.choice(*registers[4: 7]), registers[7])[-32:]
+    T2 = mb.add(mb.majority(*registers[0:3]), SIGMA_0(registers[0]))[-32:]
     # print(word, constant, registers)
     # print('t', T1, T2)
     base_reg = registers.copy()
-    base_reg.insert(0, add(T1, T2)[-32:])
+    base_reg.insert(0, mb.add(T1, T2)[-32:])
     base_reg.pop()
     # print(registers[4], T1)
-    base_reg[4] = add(base_reg[4], T1)[-32]
+    base_reg[4] = mb.add(base_reg[4], T1)[-32]
     # print(registers[4], T1)
     return base_reg
 
@@ -127,7 +132,7 @@ def compress(schedule: list, constants: list, registers: list):
         # print(a, registers)
 
     for a in range(8):
-        registers[a] = add(new_reg[a], registers[a])[-32:]
+        registers[a] = mb.add(new_reg[a], registers[a])[-32:]
 
     return registers
 
@@ -141,7 +146,7 @@ def reg_to_hash(registers: list):
     return out
 
 
-def hash_bits(data: Array):
+def hash_bits(data: mb.Array):
     # This starts from the very start with only input bits
     array = pad(data)
     # print(array.to_str())
@@ -160,7 +165,7 @@ def hash_bits(data: Array):
 
 def hash_str(string: str):
     # I could make this into one line but this looks nicer to me.
-    bits = Array()
+    bits = mb.Array()
     bits.from_text(string)
     # print(bits.to_str())
     hash_val = hash_bits(bits)
@@ -168,18 +173,26 @@ def hash_str(string: str):
 
 
 def hash_bytes(data: bytes):
-    bits = Array()
+    bits = mb.Array()
     bits.from_text(data)
     hash_val = hash_bits(bits)
     return hash_val
 
 
+def test():
+    data = mb.Array('0' * 500000)
+    # print(data.to_str())
+    input('>')
+
+
 def main():
     # print(gen_cube(7))
     # print(gen_square(7))
+    # test()
+    # quit()
     print(hash_str("abc"))
 
 
 if __name__ == '__main__':
-    USE_HISTORY = False
+    mb.USE_HISTORY = False
     main()
