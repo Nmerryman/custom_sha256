@@ -87,7 +87,7 @@ def gen_msg_schedule(message: mb.Array):
         # if a > 3:
         #     quit()
         temp1, temp2, temp3, temp4 = schedule[a], sigma_0(schedule[a + 1]), schedule[a + 9], sigma_1(schedule[a + 14])
-        together = mb.add(temp1, temp2, temp3, temp4)[-32:]
+        together = mb.add_mod(temp1, temp2, temp3, temp4)[-32:]
         schedule.append(together)
     return schedule
 
@@ -110,15 +110,15 @@ def gen_registers():
 
 def update_registers(word: mb.Array, constant: mb.Array, registers: list):
     # print(word, constant, registers)
-    T1 = mb.add(word, constant, SIGMA_1(registers[4]), mb.choice(*registers[4: 7]), registers[7])[-32:]
-    T2 = mb.add(mb.majority(*registers[0:3]), SIGMA_0(registers[0]))[-32:]
+    T1 = mb.add_mod(word, constant, SIGMA_1(registers[4]), mb.choice(*registers[4: 7]), registers[7])[-32:]
+    T2 = mb.add_mod(mb.majority(*registers[0:3]), SIGMA_0(registers[0]))[-32:]
     # print(word, constant, registers)
     # print('t', T1, T2)
     base_reg = registers.copy()
-    base_reg.insert(0, mb.add(T1, T2)[-32:])
+    base_reg.insert(0, mb.add_mod(T1, T2)[-32:])
     base_reg.pop()
     # print(registers[4], T1)
-    base_reg[4] = mb.add(base_reg[4], T1)[-32]
+    base_reg[4] = mb.add_mod(base_reg[4], T1)[-32]
     # print(registers[4], T1)
     return base_reg
 
@@ -132,7 +132,7 @@ def compress(schedule: list, constants: list, registers: list):
         # print(a, registers)
 
     for a in range(8):
-        registers[a] = mb.add(new_reg[a], registers[a])[-32:]
+        registers[a] = mb.add_mod(new_reg[a], registers[a])[-32:]
 
     return registers
 
