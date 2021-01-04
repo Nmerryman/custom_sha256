@@ -81,14 +81,17 @@ def gen_msg_schedule(message: mb.Array):
     schedule = []
     for a in range(int(len(message) / 32)):
         schedule.append(message[a * 32: (a + 1) * 32])
+        # print(len(message[a * 32: (a + 1) * 32].to_str()))
     for a in range(64 - len(schedule)):
-        gc.collect()
-        input(f'gen msg {a}')
+        # print(f'gen msg {a}')
         # if a > 3:
         #     quit()
-        temp1, temp2, temp3, temp4 = schedule[a], sigma_0(schedule[a + 1]), schedule[a + 9], sigma_1(schedule[a + 14])
-        together = mb.add_mod(temp1, temp2, temp3, temp4)[-32:]
+        temp1, temp2, temp3, temp4 = schedule[a].copy(), sigma_0(schedule[a + 1].copy()), schedule[a + 9].copy(), sigma_1(schedule[a + 14].copy())
+        together = mb.add_mod(temp1, temp2, temp3, temp4)
+        # print(together.to_str())
         schedule.append(together)
+    # for num_a, a in enumerate(schedule):
+    #     print(num_a, a.to_str())
     return schedule
 
 
@@ -96,7 +99,7 @@ def gen_constants():
     # Never changes
     const = []
     for a in primes:
-        const.append(gen_cube(a))
+        const.append(mb.Array(gen_cube(a)))
     return const
 
 
@@ -104,35 +107,40 @@ def gen_registers():
     # Never changes
     reg = []
     for a in primes[:8]:
-        reg.append(gen_square(a))
+        reg.append(mb.Array(gen_square(a)))
     return reg
 
 
 def update_registers(word: mb.Array, constant: mb.Array, registers: list):
-    # print(word, constant, registers)
-    T1 = mb.add_mod(word, constant, SIGMA_1(registers[4]), mb.choice(*registers[4: 7]), registers[7])[-32:]
-    T2 = mb.add_mod(mb.majority(*registers[0:3]), SIGMA_0(registers[0]))[-32:]
+    # print(len(word), constant, registers)
+    T1 = mb.add_mod(word.copy(), constant, SIGMA_1(registers[4]), mb.choice(*registers[4: 7]), registers[7])
+    T2 = mb.add_mod(mb.majority(*registers[0:3]), SIGMA_0(registers[0]))
     # print(word, constant, registers)
     # print('t', T1, T2)
     base_reg = registers.copy()
-    base_reg.insert(0, mb.add_mod(T1, T2)[-32:])
+    base_reg.insert(0, mb.add_mod(T1.copy(), T2))
     base_reg.pop()
     # print(registers[4], T1)
-    base_reg[4] = mb.add_mod(base_reg[4], T1)[-32]
+    base_reg[4] = mb.add_mod(base_reg[4], T1)
     # print(registers[4], T1)
+    for a in base_reg:
+        if len(a) > 32:
+            a = a[-32:]
     return base_reg
 
 
 def compress(schedule: list, constants: list, registers: list):
     # print(registers)
-    new_reg = registers.copy()
+    new_reg = []
+    for a in registers:
+        new_reg.append(a.copy())
     for a in range(64):
-        input('update reg')
+        print('update reg')
         registers = update_registers(schedule[a], constants[a], registers)
         # print(a, registers)
 
     for a in range(8):
-        registers[a] = mb.add_mod(new_reg[a], registers[a])[-32:]
+        registers[a] = mb.add_mod(new_reg[a], registers[a])
 
     return registers
 
@@ -140,7 +148,8 @@ def compress(schedule: list, constants: list, registers: list):
 def reg_to_hash(registers: list):
     out = ""
     for a in registers:
-        val = hex(int(a.to01(), 2))[2:]
+        a: mb.Array
+        val = hex(int(a.to_str(), 2))[2:]
         val = "0" * (8 - len(val)) + val  # some registers start with 0 which needs to be added back on
         out += val
     return out
