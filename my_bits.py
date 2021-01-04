@@ -30,7 +30,7 @@ class Array:
         if not bits:
             self.content = []
         elif type(bits) == str:
-            self.from_str_num(bits)
+            self.from_str_bin(bits)
         elif type(bits) == int:
             self.from_num(bits)
         elif type(bits) == list:
@@ -62,9 +62,9 @@ class Array:
         elif type(val) == str:
             return Bit(int(val))
 
-    def from_str_num(self, text: str):
+    def from_str_bin(self, text: str):
         # number in string form
-        text = text.split("b")[-1].split('x')[-1]
+        text = text.split("b")[-1]
         for a in text:
             self.content.append(self._gen_bit(a))
         return self
@@ -97,7 +97,7 @@ class Array:
         todo = self.content
         self.content = []
         important = todo[:-dist]
-        self.from_str_num("0" * dist)
+        self.from_str_bin("0" * dist)
         self.content.extend(important)
         return self
 
@@ -210,6 +210,8 @@ def add_mod(*args: Array):
     thing = args[0]
     thing: Array
     max_len = len(thing)
+    # if max_len == 33:
+    #     quit('bad')
     for a in args[1:]:
         thing.add_op(a)
         if len(thing) > max_len:
