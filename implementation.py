@@ -77,6 +77,7 @@ def sigma_0(data: bitarray.bitarray):
 def sigma_1(data: bitarray.bitarray):
     # sha operation
     prep = (rotr(data.copy(), 17), rotr(data.copy(), 19), shr(data.copy(), 10))
+    # print(prep)
     return xor(*prep)
 
 

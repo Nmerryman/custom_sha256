@@ -14,6 +14,7 @@ def sigma_0(data: mb.Array):
 def sigma_1(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(17), data.copy().rotate_right(19), data.copy().shift_right(10))
+    print([a.to_str() for a in prep], mb.xor_multi(*prep).to_str())
     return mb.xor_multi(*prep)
 
 
@@ -71,7 +72,7 @@ def to_blocks(message: mb.Array):
     print('blocks', blocks)
     pieces = []
     for a in range(int(blocks)):
-        print('cut')
+        # print('cut')
         pieces.append(message[a * 512: (a + 1) * 512])
     return pieces
 
@@ -87,7 +88,7 @@ def gen_msg_schedule(message: mb.Array):
         # if a > 3:
         #     quit()
         temp1, temp2, temp3, temp4 = schedule[a].copy(), sigma_0(schedule[a + 1].copy()), schedule[a + 9].copy(), sigma_1(schedule[a + 14].copy())
-        together = mb.add_mod(temp1, temp2, temp3, temp4)
+        together = mb.add_mod(temp1.copy(), temp2, temp3, temp4)
         # print(together.to_str())
         schedule.append(together)
     # for num_a, a in enumerate(schedule):
@@ -135,7 +136,7 @@ def compress(schedule: list, constants: list, registers: list):
     for a in registers:
         new_reg.append(a.copy())
     for a in range(64):
-        print('update reg')
+        # print('update reg')
         registers = update_registers(schedule[a], constants[a], registers)
         # print(a, registers)
 
@@ -160,7 +161,7 @@ def hash_bits(data: mb.Array):
     array = pad(data)
     # print(array.to_str())
     blocks = to_blocks(array)
-    print(blocks)
+    # print(blocks)
     constants = gen_constants()
     registers = gen_registers()
 
@@ -205,3 +206,11 @@ def main():
 if __name__ == '__main__':
     mb.USE_HISTORY = False
     main()
+
+'''
+tested:
+ascii to binary
+both padded messages
+
+Issue shown in 17 of schedule gen
+'''

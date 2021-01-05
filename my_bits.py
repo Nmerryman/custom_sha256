@@ -5,7 +5,7 @@ This was made specifically for working with the sha256 hash to better understand
 """
 
 
-USE_HISTORY = True
+USE_HISTORY = False
 
 
 class Bit:
@@ -94,18 +94,14 @@ class Array:
         return vals
 
     def shift_right(self, dist: int):
-        todo = self.content
-        self.content = []
-        important = todo[:-dist]
-        self.from_str_bin("0" * dist)
-        self.content.extend(important)
+        for a in range(dist):
+            self.content.insert(0, Bit(0))
+            self.content.pop()
         return self
 
     def rotate_right(self, dist: int):
-        todo = self.content
-        self.content = []
-        for a in range(len(todo)):
-            self.content.append(todo[(a - dist) % len(todo)])
+        for a in range(dist):
+            self.content.insert(0, self.content.pop())
         return self
 
     def _is_valid_comp(self, other: "Array"):
@@ -170,7 +166,7 @@ class Array:
                 carry = 0
             bit = Bit(val)
             if USE_HISTORY:
-                print(USE_HISTORY)
+                # print(USE_HISTORY)
                 if a == 0:
                     carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
                 else:
