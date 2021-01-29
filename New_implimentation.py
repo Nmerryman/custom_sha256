@@ -14,7 +14,7 @@ def sigma_0(data: mb.Array):
 def sigma_1(data: mb.Array):
     # sha operation
     prep = (data.copy().rotate_right(17), data.copy().rotate_right(19), data.copy().shift_right(10))
-    print([a.to_str() for a in prep], mb.xor_multi(*prep).to_str())
+    # print([a.to_str() for a in prep], mb.xor_multi(*prep).to_str())
     return mb.xor_multi(*prep)
 
 
