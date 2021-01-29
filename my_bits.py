@@ -85,6 +85,12 @@ class Array:
             self.from_num(ord(a))
         return self
 
+    def from_bytes(self, data):
+        for a in data:
+            piece = "{:08b}".format(a)
+            for b in piece:
+                self.content.append(self._gen_bit(b))
+
     def to_str(self):
         # For converting data to string, good for printing
         vals = ''
