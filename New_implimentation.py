@@ -7,7 +7,7 @@ primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67
 
 def sigma_0(data: mb.Array):
     # sha operation
-    prep = (data.copy().rotate_right(7), data.copy().rotate_right(13), data.copy().shift_right(3))
+    prep = (data.copy().rotate_right(7), data.copy().rotate_right(18), data.copy().shift_right(3))
     return mb.xor_multi(*prep)
 
 
@@ -200,7 +200,7 @@ def main():
     # print(gen_square(7))
     # test()
     # quit()
-    print(hash_str("abc"))
+    print(hash_str('abc'))
 
 
 if __name__ == '__main__':

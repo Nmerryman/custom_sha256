@@ -190,12 +190,11 @@ class Array:
 
 
 def xor_multi(*args: Array):
-    if len(args) == 1:
-        return args[0]
     thing = args[0]
     thing: Array
-    for a in args[-1:]:
-        thing.xor_op(a)
+    if len(args) > 1:
+        for a in args[1:]:
+            thing.xor_op(a)
     return thing
 
 
