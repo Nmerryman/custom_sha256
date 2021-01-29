@@ -190,11 +190,11 @@ def test():
 
 
 def main():
-    # print(gen_cube(7))
-    # print(gen_square(7))
-    test()
+    test = mb.Array(200)
+    print(test.to_hex())
+    # test()
     # quit()
-    # print(hash_str('abc'))
+    val = hash_str('abc')
 
 
 if __name__ == '__main__':

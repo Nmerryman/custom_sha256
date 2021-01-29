@@ -99,6 +99,17 @@ class Array:
             vals += str(a.val)
         return vals
 
+    def to_hex(self):
+        if len(self.content) % 4 != 0:
+            raise ValueError('Partial bytes in data')
+        out = ""
+        print(self.to_str())
+        val = hex(int(self.to_str(), 16))[2:]
+        # for a in range(int(len(self.content) / 4)):
+        #     out += hex(int(val, 2))[2:]
+            # out += "0" * (4 - len(temp)) + temp
+        return val
+
     def shift_right(self, dist: int):
         for a in range(dist):
             self.content.insert(0, Bit(0))
