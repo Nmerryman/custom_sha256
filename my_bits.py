@@ -6,6 +6,11 @@ This was made specifically for working with the sha256 hash to better understand
 
 
 USE_HISTORY = False
+# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1 (b1)=1
+#           and      xor      Majority Choice   or      const/base
+# add is assumes it only cares about local bit (A(mainx)(mainy)(carryz)) carry is majority, A is xor.
+# add will be written as (x10(M00(...)), ... is prev add func or const. add will always have 3 objects
+# If more space needs to be saved, (), [], {}, <>, '", /\ can be used hold data and op type
 
 
 class Bit:
@@ -13,7 +18,7 @@ class Bit:
     def __init__(self, val: int):
         self.val: int = val
         if USE_HISTORY:
-            self.history: str = f"<const>{self.val}</const>"
+            self.history: str = f"(c{self.val})"
         else:
             self.history = ""
 
@@ -102,12 +107,7 @@ class Array:
     def to_hex(self):
         if len(self.content) % 4 != 0:
             raise ValueError('Partial bytes in data')
-        out = ""
-        print(self.to_str())
-        val = hex(int(self.to_str(), 16))[2:]
-        # for a in range(int(len(self.content) / 4)):
-        #     out += hex(int(val, 2))[2:]
-            # out += "0" * (4 - len(temp)) + temp
+        val = hex(int(self.to_str(), 2))
         return val
 
     def shift_right(self, dist: int):
@@ -127,30 +127,30 @@ class Array:
             print('other', other.to_str(), len(other.to_str()))
             raise ValueError("Cannot Compare properly (not array or differing lengths)")
 
-    def xor_op(self, other: "Array"):
+    def xor_op(self, other: "Array", many: bool = False):
         self._is_valid_comp(other)
         todo = self.content
         self.content = []
         for a in range(len(todo)):
             val = 0 if todo[a].val == other[a].val else 1
             bit = Bit(val)
-            if USE_HISTORY:
-                bit.history = f"<xor>{todo[a].history}{other[a].history}</xor>"
+            if USE_HISTORY and not many:
+                bit.history = f"(x{todo[a].history}{other[a].history})"
             self.content.append(bit)
         return self
 
-    def or_op(self, other: "Array"):
+    def or_op(self, other: "Array", many: bool = False):
         self._is_valid_comp(other)
         todo = self.content
         self.content = []
         for a in range(len(todo)):
             val = 1 if todo[a].val == 1 or other[a].val == 1 else 0
             bit = Bit(val)
-            if USE_HISTORY:
-                bit.history = f"<or>{todo[a].history}{other[a].history}</or>"
+            if USE_HISTORY and not many:
+                bit.history = f"(o{todo[a].history}{other[a].history})"
         return self
 
-    def and_op(self, other: "Array"):
+    def and_op(self, other: "Array", many: bool = False):
         # fixme self.content never gets reassigned
         self._is_valid_comp(other)
         todo = self.content
@@ -158,8 +158,8 @@ class Array:
         for a in range(len(todo)):
             val = 1 if todo[a].val == 1 and other[a].val == 1 else 0
             bit = Bit(val)
-            if USE_HISTORY:
-                bit.history = f"<and>{todo[a].history}{other[a].history}</and>"
+            if USE_HISTORY and not many:
+                bit.history = f"(a{todo[a].history}{other[a].history})"
         return self
 
     # @profile
@@ -185,16 +185,18 @@ class Array:
             if USE_HISTORY:
                 # print(USE_HISTORY)
                 if a == 0:
-                    carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry><const>0</const></carry></add>"
+                    # todo not sure how much data I want here
+                    carry_data = f"(x{todo[a].history}{other[a].history}0)"
                 else:
-                    carry_data = f"<add><main>{todo[a].history}{other[a].history}</main><carry>{carry_data}</carry></add>"
+                    # todo I think I need to clean the carry data to remove the xor from the previous roundn
+                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data}))"
                     # carry_data = ""
                 bit.history = carry_data
             self.content.append(bit)
         if carry == 1:
             bit = Bit(1)
             if USE_HISTORY:
-                bit.history = f"<add><main><const>0</const><const>0</const></main><carry>{carry_data}</carry></add>"
+                bit.history = f"(m{carry_data})"
             self.content.append(bit)
         self.content.reverse()
         return self
@@ -209,9 +211,39 @@ class Array:
 def xor_multi(*args: Array):
     thing = args[0]
     thing: Array
+    new_hist = [a.history for a in thing]
     if len(args) > 1:
         for a in args[1:]:
+            new_hist = [new_hist[num_b] + b.history for num_b, b in enumerate(a)]
             thing.xor_op(a)
+    for a in range(len(new_hist)):
+        thing[a].history = '(x' + new_hist[a] + ')'
+    return thing
+
+
+def and_multi(*args: Array):
+    thing = args[0]
+    thing: Array
+    new_hist = [a.history for a in thing]
+    if len(args) > 1:
+        for a in args[1:]:
+            new_hist = [new_hist[num_b] + b.history for num_b, b in enumerate(a)]
+            thing.and_op(a)
+    for a in range(len(new_hist)):
+        thing[a].history = '(a' + new_hist[a] + ')'
+    return thing
+
+
+def or_multi(*args: Array):
+    thing = args[0]
+    thing: Array
+    new_hist = [a.history for a in thing]
+    if len(args) > 1:
+        for a in args[1:]:
+            new_hist = [new_hist[num_b] + b.history for num_b, b in enumerate(a)]
+            thing.or_op(a)
+    for a in range(len(new_hist)):
+        thing[a].history = '(o' + new_hist[a] + ')'
     return thing
 
 

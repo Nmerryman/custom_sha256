@@ -140,6 +140,7 @@ def compress(schedule: list, constants: list, registers: list):
 
 
 def reg_to_hash(registers: list):
+    """Obsolete"""
     out = ""
     for a in registers:
         a: mb.Array
@@ -147,6 +148,14 @@ def reg_to_hash(registers: list):
         val = "0" * (8 - len(val)) + val  # some registers start with 0 which needs to be added back on
         out += val
     return out
+
+
+def merge_reg(registers: list):
+    final = mb.Array()
+    for a in registers:
+        for b in a:
+            final.content.append(b)
+    return final
 
 
 def hash_bits(data: mb.Array):
@@ -161,7 +170,7 @@ def hash_bits(data: mb.Array):
         schedule = gen_msg_schedule(a)
         registers = compress(schedule.copy(), constants.copy(), registers.copy())
 
-    return reg_to_hash(registers)
+    return merge_reg(registers)
 
 
 def hash_str(string: str):
@@ -181,22 +190,23 @@ def hash_bytes(data: bytes):
 
 def test():
     # Generic hash
-    assert hash_str('abc') == 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+    assert hash_str('abc').to_hex()[2:] == 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
 
     # Hash file bytes
     with open('test_file.txt', 'rb') as f:
-        assert hash_bytes(f.read()) == 'a64c58af41981c80629ddeef8234a5485469787659d59c88ddff68c819100d3d'
+        assert hash_bytes(f.read()).to_hex()[2:] == 'a64c58af41981c80629ddeef8234a5485469787659d59c88ddff68c819100d3d'
     print("Hashing string and file bytes worked")
 
 
 def main():
-    test = mb.Array(200)
-    print(test.to_hex())
+    # test = mb.Array(255)
+    # print(test.to_hex())
     # test()
     # quit()
     val = hash_str('abc')
+    print(val.to_hex())
 
 
 if __name__ == '__main__':
-    mb.USE_HISTORY = False
+    mb.USE_HISTORY = True
     main()
