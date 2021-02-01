@@ -6,8 +6,11 @@ This was made specifically for working with the sha256 hash to better understand
 
 
 USE_HISTORY = False
-# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1 (b1)=1
-#           and      xor      Majority Choice   or      const/base
+HISTORY_OFFLOADING = True
+MAX_HIST_LEN = 1000
+HIST_INDEX = 0
+# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1 (b1)=1     (f12)
+#           and      xor      Majority Choice   or      const/base file data
 # add is assumes it only cares about local bit (A(mainx)(mainy)(carryz)) carry is majority, A is xor.
 # add will be written as (x10(M00(...)), ... is prev add func or const. add will always have 3 objects
 # If more space needs to be saved, (), [], {}, <>, '", /\ can be used hold data and op type
@@ -18,7 +21,7 @@ class Bit:
     def __init__(self, val: int):
         self.val: int = val
         if USE_HISTORY:
-            self.history: str = f"(c{self.val})"
+            self.history: str = f"(b{self.val})"
         else:
             self.history = ""
 
@@ -26,6 +29,14 @@ class Bit:
         new = Bit(self.val)
         new.history = self.history
         return new
+
+    def check_hist(self):
+        global HISTORY_OFFLOADING, USE_HISTORY, HIST_INDEX, MAX_HIST_LEN
+        if USE_HISTORY and HISTORY_OFFLOADING and len(self.history) > MAX_HIST_LEN:
+            with open(f"{HIST_INDEX}", 'w') as f:
+                f.write(self.history)
+            self.history = f"(f{HIST_INDEX})"
+            HIST_INDEX += 1
 
 
 class Array:
@@ -66,6 +77,11 @@ class Array:
             return Bit(val)
         elif type(val) == str:
             return Bit(int(val))
+
+    def _check_histories(self):
+        if USE_HISTORY and HISTORY_OFFLOADING:
+            for a in self.content:
+                a.check_hist()
 
     def from_str_bin(self, text: str):
         # number in string form
@@ -137,6 +153,7 @@ class Array:
             if USE_HISTORY and not many:
                 bit.history = f"(x{todo[a].history}{other[a].history})"
             self.content.append(bit)
+        self._check_histories()
         return self
 
     def or_op(self, other: "Array", many: bool = False):
@@ -148,6 +165,7 @@ class Array:
             bit = Bit(val)
             if USE_HISTORY and not many:
                 bit.history = f"(o{todo[a].history}{other[a].history})"
+        self._check_histories()
         return self
 
     def and_op(self, other: "Array", many: bool = False):
@@ -160,6 +178,7 @@ class Array:
             bit = Bit(val)
             if USE_HISTORY and not many:
                 bit.history = f"(a{todo[a].history}{other[a].history})"
+        self._check_histories()
         return self
 
     # @profile
@@ -193,12 +212,15 @@ class Array:
                     # carry_data = ""
                 bit.history = carry_data
             self.content.append(bit)
-        if carry == 1:
+        if USE_HISTORY:
+            bit = Bit(carry)
+            bit.history = f"(m{carry_data})"
+            self.content.append(bit)
+        elif carry == 1:
             bit = Bit(1)
-            if USE_HISTORY:
-                bit.history = f"(m{carry_data})"
             self.content.append(bit)
         self.content.reverse()
+        self._check_histories()
         return self
 
     def copy(self):
@@ -271,7 +293,7 @@ def choice(x: Array, y: Array, z: Array):
         else:
             new.content.append(z[a])
         if USE_HISTORY:
-            new.content[a].history = f"<choice>{x[a].history}{y[a].history}{z[a].history}</choice>"
+            new.content[a].history = f"(c{x[a].history}{y[a].history}{z[a].history})"
     return new
 
 
@@ -283,7 +305,7 @@ def majority(x: Array, y: Array, z: Array):
         else:
             bit = Bit(0)
         if USE_HISTORY:
-            bit.history = f"<majority>{x[a].history}{y[a].history}{z[a].history}</majority>"
+            bit.history = f"(m{x[a].history}{y[a].history}{z[a].history})"
         new.content.append(bit)
     return new
 
