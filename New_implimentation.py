@@ -167,6 +167,9 @@ def merge_reg(registers: list):
 def hash_bits(data: mb.Array):
     # This starts from the very start with only input bits
     array = pad(data)
+    for num_a, a in enumerate(array):
+        a.history = f"(b{num_a})"
+
     blocks = to_blocks(array)
 
     constants = gen_constants()
@@ -211,6 +214,8 @@ def main():
     # quit()
     val = hash_str('abc')
     print(val.to_hex())
+    for num_a, a in enumerate(val):
+        print(num_a, a.history)
 
 
 if __name__ == '__main__':

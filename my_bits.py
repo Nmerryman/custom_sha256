@@ -9,8 +9,8 @@ USE_HISTORY = False
 HISTORY_OFFLOADING = True
 MAX_HIST_LEN = 1000
 HIST_INDEX = 0
-# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1 (b1)=1     (f12)
-#           and      xor      Majority Choice   or      const/base file data
+# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1   (b1)=1     (f12)
+#           and      xor      Majority Choice   or        const/base file data
 # add is assumes it only cares about local bit (A(mainx)(mainy)(carryz)) carry is majority, A is xor.
 # add will be written as (x10(M00(...)), ... is prev add func or const. add will always have 3 objects
 # If more space needs to be saved, (), [], {}, <>, '", /\ can be used hold data and op type
@@ -208,13 +208,13 @@ class Array:
                     carry_data = f"(x{todo[a].history}{other[a].history}0)"
                 else:
                     # todo I think I need to clean the carry data to remove the xor from the previous roundn
-                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data}))"
+                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data[2:-1]}))"
                     # carry_data = ""
                 bit.history = carry_data
             self.content.append(bit)
         if USE_HISTORY:
             bit = Bit(carry)
-            bit.history = f"(m{carry_data})"
+            bit.history = f"(m{carry_data[2:-1]})"
             self.content.append(bit)
         elif carry == 1:
             bit = Bit(1)
