@@ -9,6 +9,8 @@ USE_HISTORY = False
 HISTORY_OFFLOADING = True
 MAX_HIST_LEN = 1000
 HIST_INDEX = 0
+HIST_DICT = {}
+USE_RECURSIVE_HIST = True
 # System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1   (b1)=1     (f12)
 #           and      xor      Majority Choice   or        const/base file data
 # add is assumes it only cares about local bit (A(mainx)(mainy)(carryz)) carry is majority, A is xor.
@@ -31,10 +33,14 @@ class Bit:
         return new
 
     def check_hist(self):
-        global HISTORY_OFFLOADING, USE_HISTORY, HIST_INDEX, MAX_HIST_LEN
+        global HISTORY_OFFLOADING, USE_HISTORY, HIST_INDEX, MAX_HIST_LEN, HIST_DICT, USE_RECURSIVE_HIST
         if USE_HISTORY and HISTORY_OFFLOADING and len(self.history) > MAX_HIST_LEN:
-            with open(f"{HIST_INDEX}", 'w') as f:
-                f.write(self.history)
+            # if USE_RECURSIVE_HIST:
+            #     for k, v in HIST_DICT.items():
+            #         if self.history == v:
+            #
+            HIST_DICT[HIST_INDEX] = self.history
+            # print("triggered")
             self.history = f"(f{HIST_INDEX})"
             HIST_INDEX += 1
 

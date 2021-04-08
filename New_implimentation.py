@@ -1,6 +1,7 @@
 import my_bits as mb
 import math
 import os
+import json
 
 primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107,
           109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
@@ -156,7 +157,7 @@ def reg_to_hash(registers: list):
     return out
 
 
-def merge_reg(registers: list):
+def merge_reg(registers: list) -> mb.Array:
     final = mb.Array()
     for a in registers:
         for b in a:
@@ -164,7 +165,7 @@ def merge_reg(registers: list):
     return final
 
 
-def hash_bits(data: mb.Array):
+def hash_bits(data: mb.Array) -> mb.Array:
     # This starts from the very start with only input bits
     array = pad(data)
     for num_a, a in enumerate(array):
@@ -214,11 +215,15 @@ def main():
     # quit()
     val = hash_str('abc')
     print(val.to_hex())
-    for num_a, a in enumerate(val):
-        print(num_a, a.history)
+    json.dump(mb.HIST_DICT, open("_HIST_1.json", 'w'), indent=4)
+    # json.dump
+
+    # for num_a, a in enumerate(val):
+    #     print(num_a, a.history)
 
 
 if __name__ == '__main__':
     goto_dir("temp_data")
     mb.USE_HISTORY = True
+    mb.MAX_HIST_LEN = 1
     main()
