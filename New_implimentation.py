@@ -169,7 +169,7 @@ def hash_bits(data: mb.Array) -> mb.Array:
     # This starts from the very start with only input bits
     array = pad(data)
     for num_a, a in enumerate(array):
-        a.history = f"(b{num_a})"
+        a.history = f"(i{num_a})"
 
     blocks = to_blocks(array)
 
@@ -215,7 +215,7 @@ def main():
     # quit()
     val = hash_str('abc')
     print(val.to_hex())
-    json.dump(mb.HIST_DICT, open("_HIST_1.json", 'w'), indent=4)
+    json.dump(mb.HIST_DICT, open("_HIST_10.json", 'w'), indent=4)
     # json.dump
 
     # for num_a, a in enumerate(val):
@@ -225,5 +225,6 @@ def main():
 if __name__ == '__main__':
     goto_dir("temp_data")
     mb.USE_HISTORY = True
-    mb.MAX_HIST_LEN = 1
+    mb.USE_RECURSIVE_HIST = False
+    mb.MAX_HIST_LEN = 10
     main()

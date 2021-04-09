@@ -1,4 +1,4 @@
-
+import time
 
 """
 This was made specifically for working with the sha256 hash to better understand how it works
@@ -10,12 +10,14 @@ HISTORY_OFFLOADING = True
 MAX_HIST_LEN = 1000
 HIST_INDEX = 0
 HIST_DICT = {}
-USE_RECURSIVE_HIST = True
-# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1   (b1)=1     (f12)
-#           and      xor      Majority Choice   or        const/base file data
+USE_RECURSIVE_HIST = False
+timing = time.time()
+# System => (a111)=1 (x001)=1 (m010)=0 (c110)=1 (o10)=1   (i1)=1     (f12)          (b0)=0
+#           and      xor      Majority Choice   or        const/base from file data unchanging const
 # add is assumes it only cares about local bit (A(mainx)(mainy)(carryz)) carry is majority, A is xor.
 # add will be written as (x10(M00(...)), ... is prev add func or const. add will always have 3 objects
 # If more space needs to be saved, (), [], {}, <>, '", /\ can be used hold data and op type
+# (b) only exists because of (i) and (f) otherwise I should not need the tag
 
 
 class Bit:
@@ -23,7 +25,7 @@ class Bit:
     def __init__(self, val: int):
         self.val: int = val
         if USE_HISTORY:
-            self.history: str = f"(b{self.val})"
+            self.history: str = f"{self.val}"
         else:
             self.history = ""
 
@@ -33,16 +35,21 @@ class Bit:
         return new
 
     def check_hist(self):
-        global HISTORY_OFFLOADING, USE_HISTORY, HIST_INDEX, MAX_HIST_LEN, HIST_DICT, USE_RECURSIVE_HIST
+        global HISTORY_OFFLOADING, USE_HISTORY, HIST_INDEX, MAX_HIST_LEN, HIST_DICT, USE_RECURSIVE_HIST, timing
         if USE_HISTORY and HISTORY_OFFLOADING and len(self.history) > MAX_HIST_LEN:
-            # if USE_RECURSIVE_HIST:
-            #     for k, v in HIST_DICT.items():
-            #         if self.history == v:
-            #
+            if USE_RECURSIVE_HIST:
+                for k, v in HIST_DICT.items():
+                    if self.history == v:
+                        self.history = f"(f{k})"
+                        return
             HIST_DICT[HIST_INDEX] = self.history
-            # print("triggered")
             self.history = f"(f{HIST_INDEX})"
             HIST_INDEX += 1
+            # Used for logging/to prove progress
+            # if len(HIST_DICT) % 1000 == 0 and len(HIST_DICT) > 10:
+            #     print(HIST_INDEX, time.time() - timing)
+            #     timing = time.time()
+                # print(f"{HIST_INDEX - 1}, {HIST_DICT[HIST_INDEX - 1]}")
 
 
 class Array:
@@ -214,9 +221,12 @@ class Array:
                     carry_data = f"(x{todo[a].history}{other[a].history}0)"
                 else:
                     # todo I think I need to clean the carry data to remove the xor from the previous roundn
-                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data[2:-1]}))"
+                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data if carry_data[1] == 'f' else carry_data[2:-1]}))"
                     # carry_data = ""
                 bit.history = carry_data
+                bit.check_hist()
+                carry_data = bit.history
+
             self.content.append(bit)
         if USE_HISTORY:
             bit = Bit(carry)
