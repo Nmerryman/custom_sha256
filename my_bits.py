@@ -18,6 +18,7 @@ timing = time.time()
 # add will be written as (x10(M00(...)), ... is prev add func or const. add will always have 3 objects
 # If more space needs to be saved, (), [], {}, <>, '", /\ can be used hold data and op type
 # (b) only exists because of (i) and (f) otherwise I should not need the tag
+# f will be an insertion of parameters, not always a finished calculation
 
 
 class Bit:
@@ -46,9 +47,9 @@ class Bit:
             self.history = f"(f{HIST_INDEX})"
             HIST_INDEX += 1
             # Used for logging/to prove progress
-            # if len(HIST_DICT) % 1000 == 0 and len(HIST_DICT) > 10:
-            #     print(HIST_INDEX, time.time() - timing)
-            #     timing = time.time()
+            if len(HIST_DICT) % 1000 == 0 and len(HIST_DICT) > 10 and USE_RECURSIVE_HIST:
+                print(HIST_INDEX, time.time() - timing)
+                timing = time.time()
                 # print(f"{HIST_INDEX - 1}, {HIST_DICT[HIST_INDEX - 1]}")
 
 
@@ -218,14 +219,20 @@ class Array:
                 # print(USE_HISTORY)
                 if a == 0:
                     # todo not sure how much data I want here
-                    carry_data = f"(x{todo[a].history}{other[a].history}0)"
+                    carry_data = f"{todo[a].history}{other[a].history}0"
                 else:
                     # todo I think I need to clean the carry data to remove the xor from the previous roundn
-                    carry_data = f"(x{todo[a].history}{other[a].history}(m{carry_data if carry_data[1] == 'f' else carry_data[2:-1]}))"
+                    carry_data = f"{todo[a].history}{other[a].history}(m{carry_data})"
                     # carry_data = ""
-                bit.history = carry_data
+                # Check if carry data becomes too big
+                temp_bit = Bit(0)
+                temp_bit.history = carry_data
+                temp_bit.check_hist()
+                carry_data = temp_bit.history
+
+                bit.history = f"(x{carry_data})"
                 bit.check_hist()
-                carry_data = bit.history
+                # carry_data = bit.history
 
             self.content.append(bit)
         if USE_HISTORY:
