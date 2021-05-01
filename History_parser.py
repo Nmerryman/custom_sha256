@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import datetime
+import re
 
 
 logging.basicConfig()
@@ -19,37 +20,79 @@ def goto_dir(name: str):
 
 
 def split_paren(text: str):
-    depth = 1
-    index = 1
-    while depth > 0:
-        if text[index] == '(':
+    # Basic validity checker (Doesn't check for invalid depths)
+    opened, closed = 0, 0
+    for a in text:
+        if a == "(":
+            opened += 1
+        elif a == ")":
+            closed += 1
+    assert opened == closed
+
+    depth = 0
+    mapped = []
+    for a in text:
+        if a == "(":
             depth += 1
-        elif text[index] == ')':
+        elif a == ")":
             depth -= 1
-        index += 1
-    out = []
-    sub = []
-    in_sub = False
-    # print(depth)
-    for a in text[1: index]:
-        # print(depth)
-        if a != '(' and a != ')' and not in_sub:
-            out.append(a)
-        elif a == '(':
-            sub.append(a)
-            depth += 1
-            in_sub = True
-        elif a == ')':
-            sub.append(a)
-            depth -= 1
-            if depth == 0:
-                out.append("".join(sub))
-                sub = []
-                in_sub = False
         else:
-            sub.append(a)
+            mapped.append([depth, a])
+
+    max_depth = 0
+    for a, b in mapped:
+        if a > max_depth:
+            max_depth = a
+
+    while max_depth >= 0:
+        current_words = []
+        word_info = []  # [[index, len],]
+        active = False
+        for num_a, a in enumerate(mapped):
+            if a[0] == max_depth:
+                if not active:
+                    current_words.append(a[1])
+                    word_info.append([num_a, 1])
+                    active = True
+                else:
+                    current_words[-1] += a[1]
+                    word_info[-1][1] += 1
+            else:
+                active = False
+        print(mapped, current_words, word_info)
+        max_depth -= 1
+
+    # depth = 1
+    # index = 1
+    # while depth > 0:
+    #     if text[index] == '(':
+    #         depth += 1
+    #     elif text[index] == ')':
+    #         depth -= 1
+    #     index += 1
+    # out = []
+    # sub = []
+    # in_sub = False
+    # # print(depth)
+    # for a in text[1: index]:
+    #     # print(depth)
+    #     if a != '(' and a != ')' and not in_sub:
+    #         out.append(a)
+    #     elif a == '(':
+    #         sub.append(a)
+    #         depth += 1
+    #         in_sub = True
+    #     elif a == ')':
+    #         sub.append(a)
+    #         depth -= 1
+    #         if depth == 0:
+    #             out.append("".join(sub))
+    #             sub = []
+    #             in_sub = False
+    #     else:
+    #         sub.append(a)
     # print(depth)
-    return out
+    # return out
 
 
 def ask_data(name: str):
@@ -58,6 +101,7 @@ def ask_data(name: str):
         # print('cache used ' + name)
         return val_cache[name]
     # asked = input(f"Data from {name}>")
+    # My way to randomly generate data
     asked = '1' if '8' in name else '0'
     val_cache[name] = asked
     return asked
@@ -67,6 +111,19 @@ def file_data(name: str):
     with open(name, 'r') as f:
         text = f.read()
     return split_paren(text)
+
+
+def get_full(name: str):
+    with open(name, 'r') as f:
+        base_text = f.read()
+
+    found = set(re.findall(r"\(f[0-9]{1,5}\)", base_text))
+
+    for a in found:
+        fill = get_full(a[2:-1])
+        base_text = base_text.replace(a, fill)
+
+    return base_text
 
 
 class Node:
@@ -100,6 +157,7 @@ class Node:
                 data.append(a)
         if type(data[0]) == Node:
             logger.warning(f"{self.vals} to {data}")
+        # todo fix the tags I changed
         if self.op == 'a':
             if '0' in data:
                 self.result = '0'
@@ -149,6 +207,7 @@ class Node:
 
 
 def tests():
+    split_paren('(a(a1)1110)')
     assert split_paren('(a)') == ['a']
     assert split_paren('((a))') == ['(a)']
     assert split_paren('(a(ba))') == ['a', '(ba)']
@@ -188,5 +247,8 @@ def main():
 if __name__ == '__main__':
     goto_dir('temp_data')
     logger.setLevel(logging.INFO)
+    # data = get_full('2680')
+    # input(len(data))
+    # quit()
     tests()
-    main()
+    # main()
