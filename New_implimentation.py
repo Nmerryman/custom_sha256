@@ -215,7 +215,6 @@ def main():
     # quit()
     val = hash_str('abc')
     print(val.to_hex())
-    json.dump(mb.HIST_DICT, open("_HIST_10.json", 'w'), indent=4)
     # json.dump
 
     # for num_a, a in enumerate(val):
